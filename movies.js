@@ -1,50 +1,62 @@
 var searchWords = ["film)", "(TV series), play)"];
+var text = "";
 var splitText = "";
 var json = "";
 function searchActor() {
-  var actor = document.getElementById("actor").value.trim().split(" ");
+  var actor = document.getElementById("actor").value.trim().replace(/\s+/g, ' ');
 
-  $.get("retrieve.php?firstName=" + actor[0] + "&lastName=" + actor[1], function(data) {
+  $.get("retrieve.php?actor=" + actor, function(data) {
+    //$("body").append("<p>" + data + "</p>");
     json = JSON.parse(data);
     var pageId = 0;
     for(pId in json.query.pages) {
       pageId = pId; 
     }
-    var text = json.query.pages[pageId]["revisions"][0]["*"];
+    text = json.query.pages[pageId]["revisions"][0]["*"];
     splitText = text.split("\n");
-    //splitText = splitText.filter(containsTypeOfFilm);
+    var filmIndex = 0;
+    var referenceIndex = 0;
     for(s in splitText) {
-      //var title = splitText[s].split("|");
-      //splitText[s] = title[title.length-1];
+      if(splitText[s].match(/===?Film[A-z]*=?==/)) {
+        filmIndex = s;
+      }
+      if(splitText[s].match(/===?References=?==/)) {
+        referenceIndex = s;
+      }
     }
+    splitText = splitText.slice(filmIndex, referenceIndex);
+    for(var i = 0; i < splitText.length; ++i) {
+      var matchWithSingleQuotes = splitText[i].match(/''\[\[[A-z].*\]\]''/);
+      var matchWithDoubleQuotes = splitText[i].match(/"\[\[[A-z].*\]\]"/);
+      if(!(matchWithSingleQuotes || matchWithDoubleQuotes)) {
+        delete splitText[i];
+      } else {
+        if(matchWithSingleQuotes) {
+          splitText[i] = matchWithSingleQuotes[0].slice(4, matchWithSingleQuotes.length-5);
+        } else {
+          splitText[i] = matchWithDoubleQuotes[0].slice(3, matchWithDoubleQuotes.length-4);
+        }
+        splitText[i] = splitText[i].split("|");
+        if(splitText[i].length == 1) {
+          splitText[i] = splitText[i][0];
+        } else {
+          splitText[i] = splitText[i][splitText[i].length-1];
+        }
+      }
+    }
+    var cnt = 0;
     for(s in splitText) {
-      $("body").append("<p>" + s + " " + splitText[s] + "</p><br>");
+      $("body").append("<p>" + cnt + " " + splitText[s] + "</p><br>");
+      cnt += 1;
     }
+    $("body").append("<p> ====BUTTS==== </p>");
   });
 
 }
 
 
-//Catch non-linked titles
-
-//Check if actor has separate page or in bio page
-
 //Check formatting
 
-//Robert De Niro
-
-//List of Tom Hanks' performances
-//Morgan Freeman on screen and stage
-//Have entering of wikipedia page
+//Multiple people with same name Chris Evans (actor)
 
 
-function containsTypeOfFilm(data) {
-  if(data.includes('!scope=')) {
-    if(data.includes("[[") && data.includes("]]")) return true;
-    if(data.includes("{{") && data.includes("sortname") && data.includes("}}")) return true;
-    for(s in searchWords) { 
-      if(data.includes(searchWords[s])) return true;
-    }
-  }
-  return false;
-}
