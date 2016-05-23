@@ -5,6 +5,8 @@ var json = "";
 var movies = {};
 var numMovies = 0;
 var jsonArr = [];
+var ret = [];
+var grosses = [];
 function searchActor() {
   var actor = document.getElementById("actor").value.trim().replace(/\s+/g, ' ');
 
@@ -61,39 +63,40 @@ function searchActor() {
       $("#results").append("<tr><th>" + numMovies + "</th><th>" + splitText[s] + "</th></tr>");
       numMovies += 1;
     }
-    var stringOfMovies = "";
-    var numTimes = Math.ceil(numMovies/50);
-    var combinedMovieStrings = [];
-    var curCnt = 0;
+
     for(title in movies) {
-      stringOfMovies += title;
-      stringOfMovies += "|";
-      ++curCnt;
-      if(curCnt == 50) {
-        combinedMovieStrings.push(stringOfMovies);
-        stringOfMovies = "";
-        curCnt = 0;
+      //make function
+      var mojotitle = title.split(" ");
+      var mojostring = "";
+      for(var i = 0; i < mojotitle.length; ++i) {
+        mojostring += mojotitle[i].toLowerCase();
       }
-    }
-    combinedMovieStrings.push(stringOfMovies);
-    for(var i = 0; i < combinedMovieStrings.length; ++i) {
-      combinedMovieStrings[i] = combinedMovieStrings[i].slice(0,combinedMovieStrings[i].length-1);
-      combinedMovieStrings[i] = encodeURIComponent(combinedMovieStrings[i]).replace(/%7C/g, "|");
-    }
-    for(movieString in combinedMovieStrings) {
-      var moviesToPass = combinedMovieStrings[movieString];
-      $.post("retrieveProfitForMovie.php", {"movies" : moviesToPass}, function(data) {
-        json = JSON.parse(data);
-        pages = json.query.pages;
-        for(p in pages) {
-          var title = pages[p].title;
-          var text = pages[p]["revisions"][0]["*"];
-          var gross = text.match(/gross\s*=\s*\$\d+.*\d+\s+[A-z]+/);
-          if(gross) gross = gross[0];
-          console.log(title, gross);
-          if(gross) $("body").append("<p>" + title + " " + gross + "</p>");
-          else $("body").append("<p style='color:red'>" + title + " " + gross + "</p>");
-        }
+      var filterChars = ['"', "'", "`", ",", "!", "-", "_"];
+      for(var i = 0; i < filterChars.length; ++i) {
+        var re = new RegExp(filterChars[i], "g");
+        mojostring = mojostring.replace(re, "");
+      }
+      mojostring = mojostring.replace(/\?/g, "");
+      mojostring = mojostring.replace(/\+/g, "");
+      mojostring = mojostring.replace(/\./g, "");
+      mojostring = mojostring.replace("&", "and");
+      console.log(mojostring);
+      $.get("retrieveProfitForMovie.php?movie=" + mojostring + "&title=" + encodeURIComponent(title), function(data) {
+        ret.push(data);
+        parts = data.split("|");
+        //console.log(parts);
+        var title = parts[0];
+        var gross = parts[1].match(/\$\d*,*\d*,*\d*,*\d*/);
+        //console.log(gross);
+        if(gross) $("body").append("<p>" + title + " " + gross + "</p>");
+        else $("body").append("<p style='color:red'>" + title + " " + gross + "</p>");
+        if(!gross) gross = "0";
+        else gross = gross[0];
+        gross = gross.replace("$", "");
+        gross = gross.replace(/,/g, "");
+        grosses.push({title : gross});
+
+
       });
     }
 
@@ -106,4 +109,8 @@ function searchActor() {
 //Seven Years in Tibet
 //Formatting
 //Look up book instead of movie
-
+//Numbers to words
+//Ampersand -> and
+//Filter A, The
+//Check numbers, twelveyearsaslave and happyfeet2
+//filter out tv shows better
