@@ -2,13 +2,16 @@
 <head>
 <title> Movies </title>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
+<link rel="stylesheet" type="text/css" href="search.css">
 </head>
 <body>
 
-<form onsubmit="return false">
+<h3> At the Movies </h3>
+<form id="form" onsubmit="return false">
   Enter an actor's name
   <br>
   <input type="text" id="actor">
+  <br>
   <button onclick="searchActor()">Search Actor</button>
 </form>
 </body>

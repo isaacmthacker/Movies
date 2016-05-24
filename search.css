@@ -1,0 +1,27 @@
+body {
+  background-color : #090974;
+  color : white;
+  text-align : center;
+}
+h3 {
+  font-size : 40px;
+  background-color : #313186;
+  border : 1px solid white;
+}
+
+table {
+  margin-left : auto;
+  margin-right : auto;
+}
+
+thead {
+  font-size : 35px;
+}
+
+tbody tr:nth-child(odd) {
+  background-color: #4F4FD9;
+}
+
+tbody tr:nth-child(even) {
+  background-color: #7373D9;
+}
